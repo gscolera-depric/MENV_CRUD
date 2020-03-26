@@ -1,43 +1,40 @@
 import axios from 'axios';
 
+const Provider = {};
 const endpoint = '/api/provider';
-const Provider = { _id: '', name: '' };
+
 
 Provider.get = params => new Promise((resolve, reject) => {
-  let query = endpoint;
-
-  if (params) 
-    query = `${query}?${params}`;
-  
-  axios.get(query)
+  axios.get(endpoint, { params })
     .then(res => resolve(res.data))
-    .catch(e => reject(e.response))
-})
+    .catch(e => reject(e.response));
+}); 
 
-Provider.create = provider => new Promise((resolve, reject) => {
-  axios.post(endpoint, {name: provider})
+Provider.create = name => new Promise((resolve, reject) => {
+  if (!name)
+    return reject({ reason: "No name provided!"});
+
+  axios.post(endpoint, { name })
     .then(res => resolve(res.data))
-    .catch(e => reject(e.response))
-})
+    .catch(e => reject(e.response));
 
-Provider.update = provider => new Promise((resolve, reject) => {
-  let query = `${endpoint}?id=${provider.id}`;
-  
-  axios.put(query, { name: provider.name })
-    then()
-  
 });
 
-Provider.del = provider => new Promise((resolve, reject) => {
-  axios.delete(`${endpoint}?id=${provider._id}`)
-    .then(res => resolve())
-    .catch(e => reject(e))
+Provider.update = options => new Promise((resolve, reject) => {
+  if (!options || !options.name || !options.id) 
+    return reject({ reason: "Some options are missing" });
+
+  let params = { id: options.id };
+  
+  axios.put(endpoint, { name: options.name }, { params })
+    .then(() => resolve())
+    .catch(e => reject(e.response));
 })
 
-Provider.getOne = provider => new Promise((resolve, reject) => {
-  axios.get(`${endpoint}?id=${provider._id}`)
-    .then(res => resolve(res.data))
-    .catch(e => reject(e))
+Provider.delete = params => new Promise((resolve, reject) => {
+  axios.delete(endpoint, { params })
+    .then(() => resolve())
+    .catch(e => reject(e.response));
 })
 
 export default Provider;

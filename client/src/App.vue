@@ -1,17 +1,17 @@
-<template>
- <b-container id="app" style="height: 100vh" class="px-0">
+<template> 
+<b-container id="app" style="height: 100vh" class="px-0">
    <preloader v-if="loading"/>
-   <client-list v-else/>
-   <client-form />
+   <client-list @error="showErrorMessage" v-else/>
+   <client-form @error="showErrorMessage" />
  </b-container>
 </template>
 
 <script>
-import ClientList from './components/CLientList';
+import ClientList from './components/ClientList';
 import ClientForm from './components/ClientForm';
 import Preloader from './components/Preloader';
 import { Client, Provider } from './api';
-import { mapActions } from 'vuex';
+import { mapMutations } from 'vuex';
 export default {
   name: "App",
   components: {
@@ -20,19 +20,36 @@ export default {
     Preloader
   },
   data: () => ({
-    loading: true
+    loading: true,
+    clientToUpdate: null
   }),
   methods: {
-    ...mapActions(['loadProviders', 'loadClients']),
+    ...mapMutations(['saveClients', 'saveProviders']),
+    showErrorMessage() {
+      console.log('Ok')
+      let msg = "It seems like something went wrong. Please try again later...";
+      let options = {
+        title: 'Error occured!',
+        buttonSize: 'sm',
+        headerClass: 'text-danger',
+        centered: true,
+        okVariant: 'danger'
+      };
 
+      this.$bvModal.msgBoxOk(msg, options);
+    }
   },
   created() {
-    this.loadClients().finally(this.loading = false);
-    this.loadProviders();
-  },
-  mounted() {
-    this.$bvModal.show('client-form');
+    Provider.get()
+      .then(providers => this.saveProviders(providers))
+      .catch(e => console.log(e));
+
+    Client.get()
+      .then(clients => this.saveClients(clients))
+      .catch(e => console.log(e))
+      .finally(() => this.loading = false);
   }
+ 
 };
 </script>
 <style>
@@ -44,7 +61,6 @@ export default {
 
 .pointer:hover {
   cursor: pointer;
-  transform: scale(1.1);
 }
 
 </style>

@@ -4,28 +4,25 @@ const endpoint = '/api/client';
 const Client = {};
 
 Client.get = params => new Promise((resolve, reject) => {
-  let query = endpoint;
-
-  if (params)
-    query = `${query}?${params}`;
-
-  axios.get(query)
+  axios.get(endpoint, { params })
     .then(res => resolve(res.data))
     .catch(e => reject(e));
 });
 
-Client.new = client => new Promise((resolve, reject) => {
+Client.create = client => new Promise((resolve, reject) => {
   axios.post(endpoint, client)
     .then(res => resolve(res.data))
     .catch(e => reject(e.response))
 });
 
-Client.update = client => new Promise((resolve, reject) => {
-  resolve()
+Client.update = options => new Promise((resolve, reject) => {
+  axios.put(endpoint, options.client, { params: options.params })
+    .then(res => resolve(res.data))
+    .catch(e => reject(e.response))
 });
 
-Client.delete = id => new Promise((resolve, reject) => {
-  axios.delete(`${endpoint}?id=${id}`)
+Client.delete = params => new Promise((resolve, reject) => {
+  axios.delete(endpoint, { params })
     .then(() => resolve())
     .catch(e => reject(e.response))
 })

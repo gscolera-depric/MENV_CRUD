@@ -31,7 +31,7 @@ function update(req, res) {
   if (!req.query.id)
     return res.status(400).json({ error: "No provider id in query"});
 
-  Provider.findByIdAndUpdate(req.query.id, { name: req.body.name }).exec(err => {
+  Provider.findByIdAndUpdate(req.query.id, { name: req.body.name }).exec((err, data) => {
     return err ? res.status(500).json(err) : res.sendStatus(200)
   })
 }

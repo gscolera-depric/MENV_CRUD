@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "babel-node": "babel-node",
     "build": "webpack --mode production",
     "dev": "nodemon src/index.js"
   },
@@ -22,8 +23,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",
+    "@babel/node": "^7.8.7",
     "@babel/preset-env": "^7.9.0",
     "babel-loader": "^8.1.0",
+    "copy-webpack-plugin": "^5.1.1",
+    "fs": "0.0.1-security",
     "nodemon": "^2.0.2",
     "webpack": "^4.42.0",
     "webpack-cli": "^3.3.11",

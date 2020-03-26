@@ -1,52 +1,56 @@
 <template>
-  <b-modal id="client-form" centered size="md" @open="reset">
+  <b-modal id="form" centered size="md" @show="resetForm" @hide="forgetClient">
     <template v-slot:modal-header>
-      <h4 class="text-primary">{{ title }}</h4>
+      <h4 class="text-primary">{{ client ? 'Update Client' : 'New Client' }}</h4>
     </template>
     <template v-slot:default>
       <b-form class="sm-px-5">
         <b-form-group
           :label="item.label"
-          :description="item.valid === null ? item.description : ''"
           v-for="item in form"
+          :description="item.error === '' ? item.desc : ''"
           :key="item.label"
         >
           <b-row>
             <b-col>
               <b-form-input
                 size="sm"
-                v-model="item.model"
+                v-model.trim="item.model"
                 spellcheck="false"
                 autocomplete="off"
                 :state="item.valid"
-                @input="item.valid = null"
-                @blur="validate(item)"
+                @input="validate(item)"
               />
             </b-col>
-            <b-col v-if="item.label=='Providers'" cols="5" sm="4">
-              <b-btn size="sm" @click="addProvider" v-if="!updatedProvider">Add Provider</b-btn>
+            <b-col v-if="item.label=='Provider'" cols="6" sm="4">
+              <b-btn
+                size="sm"
+                :disabled="!form.provider.valid"
+                @click="addProvider"
+                v-if="!updatedProvider"
+              >Add Provider</b-btn>
+
               <b-button-group v-else size="sm">
-                <b-btn>
+                <b-btn :disabled="!form.provider.valid" @click="updateProvider">
                   <b-icon-person-check-fill />
                 </b-btn>
-                <b-btn>
-                  <b-icon-x-circle-fill @click="finishProviderUpdating"/>
+                <b-btn  @click="cancelProviderUpdating">
+                  <b-icon-x-circle-fill />
                 </b-btn>
               </b-button-group>
             </b-col>
           </b-row>
-          <b-form-invalid-feedback :state="item.valid" class="px-1">{{ item.validationError }}</b-form-invalid-feedback>
-          <b-form-valid-feedback :state="item.valid" class="px-1">Ok</b-form-valid-feedback>
+          <b-form-invalid-feedback :state="item.valid" class="px-1">{{ item.error }}</b-form-invalid-feedback>
         </b-form-group>
-        <b-container class="px-0">
-          <b-checkbox-group v-model="providersChecked" @change="nocheckedError = false">
+        <b-container class="px-0 pt-3">
+          <b-checkbox-group v-model="checked">
             <b-row v-for="provider in providers" :key="provider._id" align-h="start" class="mb-1">
               <b-col>
                 <b-checkbox :value="provider._id">{{ provider.name }}</b-checkbox>
               </b-col>
               <b-col>
                 <b-button-group size="sm">
-                  <b-btn @click="updateProvider(provider)">
+                  <b-btn @click="startProviderUpdating(provider)">
                     <b-icon-pencil />
                   </b-btn>
                   <b-btn @click="deleteProvider(provider)">
@@ -56,146 +60,253 @@
               </b-col>
             </b-row>
           </b-checkbox-group>
-          <p class="pt-3 text-danger"
-            v-if="nocheckedError"
+          <p
+            class="pt-3 text-danger"
+            v-if="!checked.length"
           >At least one provider should be selected!</p>
         </b-container>
       </b-form>
     </template>
     <template v-slot:modal-footer>
       <b-row>
-        <b-btn size="sm">Cancel</b-btn>
-        <b-btn class="ml-2" size="sm" @click="submit">Add Client</b-btn>
+        <b-btn size="sm" @click="$bvModal.hide('form')">Cancel</b-btn>
+        <b-btn
+          v-if="!client"
+          class="ml-2"
+          size="sm"
+          @click="submit"
+          :disabled="!readyToSubmit"
+        >Add Client</b-btn>
+        <b-btn v-else class="ml-2" size="sm" @click="submitUpdate" :disabled="!readyToUpdate">Update</b-btn>
       </b-row>
     </template>
   </b-modal>
 </template>
 <script>
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 import { Client, Provider } from "@/api";
 export default {
   name: "Form",
   data: () => ({
     form: {
-       name: {
-          label: "Name",
-          model: "",
-          description: "From 3 to 20 characters, spaces or digits.",
-          pattern: /^[a-z\d\s]{3,20}$/i,
-          valid: null,
-          validationError: null
-        },
-        email: {
-          label: "Email",
-          model: "",
-          description: "Valid email address.",
-          pattern: /^[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+$/i,
-          valid: null,
-          validationError: null
-        },
-        phone: {
-          label: "Phone",
-          model: "",
-          description: "At least 6 digits.",
-          pattern: /^[\d-+]{6,15}$/,
-          valid: null,
-          validationError: null
-        },
-        providers: {
-          label: "Providers",
-          model: "",
-          pattern: /^[a-z\d\s]{3,20}$/i,
-          description: "From 3 to 20 characters, spaces or digits.",
-          valid: null,
-          validationError: null
-        }
+      name: {
+        label: "Name",
+        model: "",
+        valid: null,
+        desc: "From 3 to 20 latin characters, spaces or digits.",
+        error: "",
+        pattern: /^[a-z\s\d]{3,20}$/i
+      },
+      email: {
+        label: "Email",
+        model: "",
+        valid: null,
+        desc: "Valid email address!",
+        error: "",
+        pattern: /[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/i
+      },
+      phone: {
+        label: "Phone",
+        model: "",
+        valid: null,
+        desc: "Minimum 6 digits",
+        error: "",
+        pattern: /^[\d-+]{6,20}$/
+      },
+      provider: {
+        label: "Provider",
+        model: "",
+        valid: null,
+        desc: "From 3 to 20 latin characters, spaces or digits.",
+        error: "",
+        pattern: /^[a-z\s\d]{3,20}$/i,
+        origin: ""
+      }
     },
-    providersChecked: [],
-    nocheckedError: false,
+    checked: [],
     updatedProvider: null
   }),
   computed: {
-    title() {
-      return this.editedClient ? "Update Client" : "Create Client";
+    ...mapGetters(["client", "providers"]),
+    readyToSubmit() {
+      return (
+        this.form.name.valid &&
+        this.form.email.valid &&
+        this.form.phone.valid &&
+        this.checked.length
+      );
     },
-    ...mapGetters(["editedClient", "client", "providers"])
+    readyToUpdate() {
+      let keys = [];
+
+      if (this.form.name.model != this.client.name) keys.push("name");
+      if (this.form.email.model != this.client.email) keys.push("email");
+      if (this.form.phone.model != this.client.phone) keys.push("phone");
+
+      keys.forEach(key => {
+        if (!this.form[key].valid)
+          return false;
+      });
+
+      if (keys.length && this.checked.length ) return true;
+      if (this.checked.length && this.checked.length != this.client.providers.length) return true;
+
+      for (let i = 0; i < this.checked.length; i++){
+        for (let j = 0; j < this.client.providers.length; j++) {
+          if (this.checked != this.client.providers[j]._id)
+            return true;
+        }
+      }
+      return false;
+    }
   },
   methods: {
-    reset() {
-      for (let i in this.form) {
-        this.form[i].model = '';
-        this.form[i].valid = null;
-        this.form[i].validationError = null;
-      }
-      this.providersChecked = [];
-      this.nocheckedError = false;
-      this.updatedProvider = null;
+    validate(item) {
+      if (item.model == item.origin) return item.valid = null;
+      if (!item.pattern.test(item.model)) return this.setError(item, "");
+
+      let params = {};
+      let api = item.label === "Provider" ? Provider : Client;
+      let key = item.label === "Provider" ? "name" : item.label.toLowerCase();
+
+      params[key] = item.model;
+
+      api
+        .get(params)
+        .then(res => {
+          if (res)
+            return this.setError(
+              item,
+              `${item.label} ${item.model} is already in use`
+            );
+
+          item.valid = true;
+          item.error = "";
+        })
+        .catch(() => this.setError(item, "Internal server error"));
     },
-    async validate(item) {
-      if (item.label === "Providers" && !item.model.length) return true;
+    setError(item, error) {
+      item.valid = false;
+      item.error = error;
+    },
+    resetForm() {
+      for (let i in this.form) this.resetField(this.form[i]);
 
-      if (!item.pattern.test(item.model)) {
-        item.valid = false;
-        item.validationError = `${item.label} is invalid!`;
-        return false;
+      this.checked = [];
+
+      if (this.client) {
+        this.form.name.model = this.client.name;
+        this.form.name.origin = this.client.name;
+        this.form.email.model = this.client.email;
+        this.form.email.origin = this.client.email;
+        this.form.phone.model = this.client.phone;
+        this.form.phone.origin = this.client.phone;
+        this.client.providers.forEach(provider =>
+          this.checked.push(provider._id)
+        );
       }
-
-      let api, query;
-
-      if (item.label === "Providers") {
-        api = Provider;
-        query = `name=${item.model}`;
-      } else {
-        api = Client;
-        query = `${item.label.toLowerCase()}=${item.model}`;
-      }
-
-      try {
-        if (await api.get(query)) {
-          item.valid = false;
-          item.validationError = `${item.label} ${item.model} is already in use!`;
-          return false;
-        }
-      } catch (e) {
-        console.log(e.response);
-        return false;
-      }
-      return true;
+    },
+    resetField(field) {
+      field.model = "";
+      field.error = "";
+      field.origin = "";
+      field.valid = null;
     },
     submit() {
-      if (!this.providersChecked.length) return (this.nocheckedError = true);
-
-      for (let i in this.form) {
-        if (!this.form[i].valid && !this.validate(this.form[i])) return;
-      }
-
       let client = {
         name: this.form.name.model,
         email: this.form.email.model,
         phone: this.form.phone.model,
-        providers: this.providersChecked
+        providers: this.checked
       };
 
-      this.createClient(client)
-        .then(() => this.reset())
-        .catch(e => console.log(e));
+      Client.create(client)
+        .then(res => {
+          this.addClientToStore(res);
+          this.$bvModal.msgBoxOk("Client was successfully created!");
+          this.resetForm();
+        })
+        .catch(() => this.$emit("error"));
+    },
+    submitUpdate() {
+      let options = {
+        params: { id: this.client._id },
+        client: {
+          name: this.form.name.model,
+        email: this.form.email.model,
+        phone: this.form.phone.model,
+        providers: this.checked 
+        }
+      }
+
+      Client.update(options)
+        .then(res => {
+          this.updateClientAtStore(res);
+          this.$bvModal.hide('form');
+          this.$root.$emit('bv::refresh::table', 'client-list');
+        })
+        .catch(e => this.$emit('error'))
     },
     addProvider() {
-      this.createProvider(this.form.providers.model)
-        .then(() => (this.form.providers.model = ""))
-        .catch(
-          () => (this.form.providers.validationError = "Invalid provider name!")
-        );
+      Provider.create(this.form.provider.model).then(res => {
+        this.addProviderToStore(res);
+        this.$bvModal.msgBoxOk("Provider was successfully created!");
+        this.resetField(this.form.provider);
+      });
     },
-    updateProvider(provider) {
+    startProviderUpdating(provider) {
       this.updatedProvider = provider._id;
-      this.form.providers.model = provider.name;
+      this.form.provider.model = provider.name;
+      this.form.provider.valid = null;
+      this.form.provider.error = "";
     },
-    finishProviderUpdating() {
+    updateProvider() {
+      let options = {
+        id: this.updatedProvider,
+        name: this.form.provider.model
+      };
+
+      Provider.update(options)
+        .then(() => {
+          this.updateProviderAtStore(options);
+          this.resetField(this.form.provider);
+          this.updatedProvider = null;
+        })
+        .catch(e => console.log(e));
+    },
+    cancelProviderUpdating() {
+      this.resetField(this.form.provider);
       this.updatedProvider = null;
-      this.form.providers.model = '';
     },
-    ...mapActions(["createProvider", "createClient", "deleteProvider"])
+    deleteProvider(provider) {
+      let message = `Are you sure you want to delete '${provider.name}' provider?`;
+      let options = {
+        title: "Please confirm!",
+        buttonSize: "sm",
+        okVariant: "danger",
+        okTitle: "Delete"
+      };
+
+      this.$bvModal
+        .msgBoxConfirm(message, options)
+        .then(value => {
+          if (!value) return;
+
+          Provider.delete({ id: provider._id })
+            .then(() => this.removeProviderFromStore(provider._id))
+            .catch(e => console.log(e));
+        })
+        .catch(e => console.log(e));
+    },
+    ...mapMutations([
+      "removeProviderFromStore",
+      "resetClient",
+      "addClientToStore",
+      "addProviderToStore",
+      "updateProviderAtStore",
+      "updateClientAtStore",
+      "forgetClient"
+    ])
   }
 };
 </script>

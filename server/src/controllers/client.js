@@ -37,9 +37,11 @@ function update(req, res) {
   if (!req.query.id)
     return res.status(400).json({ error: 'No client id in query' });
 
-  Client.findByIdAndUpdate(req.query.id, { ...req.body }, { runValidators: true }).exec(err => {
-    err ? res.status(500).json(err) : res.sendStatus(200)
-  })
+  Client.findByIdAndUpdate(req.query.id, { ...req.body }, {new: true, runValidators: true })
+    .populate('providers')
+    .exec((err, data) => {
+      err ? res.status(500).json(err) : res.status(200).json(data)
+    })
 }
 
 function del(req, res) {

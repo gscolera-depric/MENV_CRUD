@@ -1,3 +1,5 @@
+'use strict'
+
 const express = require('express');
 const mongoose = require('mongoose');
 const swaggerUi = require('swagger-ui-express');
@@ -18,10 +20,12 @@ const apiDocs = YAML.load(path.resolve(__dirname, 'swagger.yaml'));
 app.use(morgan('short'))
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.static(__dirname + './public'));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(apiDocs));
 app.use('/api/client', Client);
 app.use('/api/provider', Provider);
+app.get('/.*/', (req, res) => res.send('index.html'));
 
 mongoose.set('useUnifiedTopology', true);
 mongoose.set('useNewUrlParser', true);

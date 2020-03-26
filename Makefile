@@ -1,4 +1,3 @@
-DB_URL = "mongodb+srv://gscolera:12345@cluster0-todah.mongodb.net/test?retryWrites=true&w=majority"
 HOST = 192.168.0.33
 
 .PHONY: client
@@ -9,7 +8,7 @@ client:
 .PHONY: server
 
 server:
-	HOST=${HOST} DB_URL=${DB_URL} npm run dev --prefix server
+	HOST=${HOST} npm run dev --prefix server
 
 .PHONY: build
 
@@ -18,5 +17,8 @@ build:
 	npm run build --prefix server
 	npm run build --prefix client
 
+run:
+	node ./www/server.js
+	
 clean:
 	rm -rf ./www

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const namePattern = /[a-z\d\s]{3,20}/i;
 const emailPattern = /[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/i;
-const phonePattern = /^[\d-+]{7,12}$/;
+const phonePattern = /^[\d-+]{6,20}$/;
 
 const clientSchema = new mongoose.Schema({
   name: {
