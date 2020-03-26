@@ -36,29 +36,7 @@ import { Client } from '@/api';
 export default {
   name: "ClientList",
   data: () => ({
-    isBusy: false,
-    fields: [
-      {
-        key: "Name",
-        sortable: true
-      },
-      {
-        key: "Email",
-        sortable: true
-      },
-      {
-        key: "Phone",
-        sortable: true
-      },
-      {
-        key: "Providers",
-        sortable: true
-      },
-      {
-        key: "Actions"
-      }
-    ],
-    hovered: false
+    fields: [ "Name", "Email", "Phone", "Providers", "Actions" ]
   }),
   computed: {
     ...mapGetters(['clients'])
