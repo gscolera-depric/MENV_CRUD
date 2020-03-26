@@ -11,7 +11,7 @@ node.js and npm should be installed on your machine to run this project.
 
 ```
 1. clone this repo.
-2. npm run install.
+2. npm run build.
 3. npm run server.
 ```
 
