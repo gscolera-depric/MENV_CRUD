@@ -14,18 +14,23 @@ const host = process.env.HOST || '127.0.0.1';
 const port = process.env.PORT || 7878;
 const dbURL = process.env.DB_URL;
 
+if (!dbURL) {
+  console.log('Missing DB_URL env variable!');
+  process.exit(1);
+}
+
 const app = express();
 const apiDocs = YAML.load(path.resolve(__dirname, 'swagger.yaml'));
 
 app.use(morgan('short'))
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(express.static(__dirname + './public'));
+app.use(express.static('public'));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(apiDocs));
 app.use('/api/client', Client);
 app.use('/api/provider', Provider);
-app.get('/.*/', (req, res) => res.send('index.html'));
+app.get('/', (req, res) => res.sendFile('index.html'));
 
 mongoose.set('useUnifiedTopology', true);
 mongoose.set('useNewUrlParser', true);
