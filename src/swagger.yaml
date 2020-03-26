@@ -14,13 +14,23 @@ components:
     Provider:
       type: object
       properties:
-        _id:
-          type: interger
         name:
           type: string
       example:
-        _id: 1
         name: Provider
+    Client:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        providers:
+          type: array
+          items:
+            type: string
 
 tags:
   - name: Client
@@ -47,15 +57,10 @@ paths:
           required: false
           schema:
             type: string
-          description: Provider's name to return
-        - in: query
-          id: id
-          required: false
-          schema:
-            type: string
-          description: Provider's id to return
+          description: Find provider by name
+    
     post:
-      summary: Creates a new provider in Database
+      summary: Creates a new provider
       tags:
         - Provider
       requestBody:
@@ -67,9 +72,9 @@ paths:
               Provider:
                 name: provider
       responses:
-        200:
+        201:
           description: Ok
-        422:
+        400:
           description: Bad Request
         500:
           description: Database error
@@ -77,6 +82,15 @@ paths:
       summary: Updates existing provider
       tags:
         - Provider
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/components/schemas/Provider'
+        400:
+          description: Bad request
+        500:
+          description: Database error
       parameters:
         - in: query
           name: id
@@ -84,6 +98,114 @@ paths:
           schema:
             type: string
           description: Provider's id to update
+    delete:
+      summary: Delete existing provider
+      tags:
+        - Provider
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad request
+        500:
+          description: Database error
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Provider's id to delete
+  /client:
+    get:
+      summary: Returns clients array of objects or object if one of query parametrs provided.
+      tags:
+        - Client
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/components/schemas/Client'
+        500:
+          description: Database error
+      parameters:
+        - in: query
+          name: name
+          required: false
+          schema:
+            type: string
+          description: Find client by name
+        - in: query
+          email: email
+          required: false
+          schema:
+            type: string
+          description: Find client by email
+        - in: query
+          phone: phone
+          required: false
+          schema:
+            type: string
+          description: Find client by phone
+    post:
+      summary: Creates a new Client
+      tags:
+        - Client
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/Client'
+            examples:
+              Client:
+                name: Client
+      responses:
+        201:
+          description: Ok
+        422:
+          description: Bad Request
+        500:
+          description: Database error
+    put:
+      summary: Updates existing Client
+      tags:
+        - Client
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/components/schemas/Client'
+        400:
+          description: Bad request
+        500:
+          description: Database error
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Id of the client to update
+    delete:
+      summary: Delete existing client
+      tags:
+        - Client
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Bad request
+        500:
+          description: Database error
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Id of the client to delete
+
+    
 
 
 
