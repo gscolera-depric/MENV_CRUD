@@ -223,8 +223,9 @@ export default {
       Client.create(client)
         .then(res => {
           this.addClientToStore(res);
-          this.$bvModal.msgBoxOk("Client was successfully created!");
           this.resetForm();
+          this.$bvModal.hide('form');
+          this.$bvModal.msgBoxOk("Client was successfully created!");
         })
         .catch(() => this.$emit("error"));
     },
@@ -233,9 +234,9 @@ export default {
         params: { id: this.client._id },
         client: {
           name: this.form.name.model,
-        email: this.form.email.model,
-        phone: this.form.phone.model,
-        providers: this.checked 
+          email: this.form.email.model,
+          phone: this.form.phone.model,
+          providers: this.checked 
         }
       }
 

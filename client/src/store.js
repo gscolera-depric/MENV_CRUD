@@ -27,6 +27,12 @@ export default new Vuex.Store({
     addClientToStore: (state, client) => state.clients.push(client),
     addProviderToStore: (state, provider) => state.providers.push(provider),
     removeProviderFromStore: (state, id) => {
+      let clients = state.clients;
+      for (let i = 0; i < clients.length; i++)
+        for (let j = 0; j < clients[i].providers.length; j++)
+          if (clients[i].providers[j]._id === id)
+            clients[i].providers.splice(j, 1);
+
       for (let i = 0; i < state.providers.length; i++)
         if (state.providers[i]._id == id) {
           state.providers.splice(i, 1)

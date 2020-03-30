@@ -15,7 +15,10 @@
       <template v-slot:cell(email)="data">{{ data.item.email }}</template>
       <template v-slot:cell(phone)="data">{{ data.item.phone }}</template>
       <template v-slot:cell(providers)="data">
-        <span v-for="provider in data.item.providers" :key="provider.id">{{ `${provider.name}, ` }}</span>
+        <span v-for="(provider, i) in data.item.providers" :key="provider.id">
+          <span>{{ provider.name }}</span>
+          <span v-if="i < data.item.providers.length - 1">,  </span>
+        </span>
       </template>
       <template v-slot:cell(actions)="data">
         <b-button-group size="sm">
