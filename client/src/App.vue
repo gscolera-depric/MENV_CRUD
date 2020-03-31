@@ -42,11 +42,11 @@ export default {
   created() {
     Provider.get()
       .then(providers => this.saveProviders(providers))
-      .catch(e => console.log(e));
+      .catch(() => this.showErrorMessage());
 
     Client.get()
       .then(clients => this.saveClients(clients))
-      .catch(e => console.log(e))
+      .catch(() => this.showErrorMessage())
       .finally(() => this.loading = false);
   }
  

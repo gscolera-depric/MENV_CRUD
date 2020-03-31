@@ -15,7 +15,7 @@
       </span>
       <b-collapse id="settings" is-nav>
         <b-container class="px-0 py-3">
-          <b-row class="w-100">
+          <b-row class="w-100 mb-2">
             <b-col cols="12" md="6" class="mb-2 mb-md-0">
               <b-form-select v-model="sort" :options="sortOptions" class="bg-secondary text-white" size="sm" />
             </b-col>
@@ -25,6 +25,14 @@
                 <b-form-select-option value="asc">ascending</b-form-select-option>
                 <b-form-select-option value="desc">descending</b-form-select-option>
               </b-form-select>
+            </b-col>
+          </b-row>
+          <b-row class="w-100">
+            <b-col cols="12" md="6" class="mb-2 mb-md-0">
+              <b-form-select v-model="filterBy" :options="filterOptions" class="bg-secondary text-white" size="sm" />
+            </b-col>
+            <b-col cols="12" md="6">
+              <b-form-input v-model="filter" @input="filterCLients" size="sm"/>
             </b-col>
           </b-row>
         </b-container>
@@ -67,30 +75,43 @@ export default {
   name: "ClientList",
   data: () => ({
     fields: ["Name", "Email", "Phone", "Providers", "Actions"],
-    sort: null,
+    sort: "name",
     order: null,
+    filterBy: "name",
+    filter: '',
     sortOptions: [
-      { value: null, text: "---Sort by---" },
-      { value: "name", text: "Name" },
-      { value: "email", text: "Email" },
-      { value: "phone", text: "Phone" }
+      { value: "name", text: "Sort by name" },
+      { value: "email", text: "Sort by email" },
+      { value: "phone", text: "Sort by phone" }
+    ],
+    filterOptions: [
+      { value: "name", text: "Filter by name" },
+      { value: "email", text: "Filter by email" },
+      { value: "phone", text: "Filter by phone" }
     ]
   }),
   computed: {
     ...mapGetters(["clients"]),
     clientsList() {
-      let sort = this.sort || "name";
+      let sort = this.sort;
 
       return this.clients.sort((a, b) => {
         if (a[sort] > b[sort]) return this.order === "desc" ? -1 : 1;
-
         if (a[sort] < b[sort]) return this.order === "desc" ? 1 : -1;
-
         return 0;
       });
     }
   },
   methods: {
+    filterCLients() {
+      let filter = {};
+      
+      filter[this.filterBy] = this.filter;
+     
+      Client.filterReq(filter)
+        .then(clients => this.saveClients(clients))
+        .catch(() => this.$emit('error'));
+    },
     deleteClient(client) {
       let message = `Are you sure you want to delete ${client.name}?`;
       let options = {
@@ -116,7 +137,7 @@ export default {
       this.$bvModal.show("form");
     },
 
-    ...mapMutations(["removeCLientFromStore", "rememberClient"])
+    ...mapMutations(["removeCLientFromStore", "rememberClient", "saveClients"])
   }
 };
 </script>

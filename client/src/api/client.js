@@ -9,6 +9,12 @@ Client.get = params => new Promise((resolve, reject) => {
     .catch(e => reject(e));
 });
 
+Client.filterReq = params => new Promise((resolve, reject) => {
+  axios.get(`${endpoint}/filter`, { params })
+    .then(res => resolve(res.data))
+    .catch(e => reject(e));
+});
+
 Client.create = client => new Promise((resolve, reject) => {
   axios.post(endpoint, client)
     .then(res => resolve(res.data))

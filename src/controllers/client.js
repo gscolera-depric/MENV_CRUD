@@ -7,7 +7,22 @@ router.route('/')
   .put(update)
   .delete(del)
 
+router.get('/filter', getFilter);
+  
+function getFilter(req, res) {
+  let filter = req.query;
+
+  for (i in filter) {
+    filter[i] = new RegExp(filter[i], 'i')
+  };
+  
+  Client.find(filter).populate('providers').exec((err, clients) => {
+    err ? res.status(500).json(err) : res.status(200).json(clients);
+  })
+}
+
 function get(req, res) {
+
   if (req.query.name)
     return getOne({ name: req.query.name }, res);
 
@@ -17,7 +32,7 @@ function get(req, res) {
   if (req.query.phone)
     return getOne({ phone: req.query.phone }, res);
 
-  Client.find().sort('name').populate('providers').exec((err, clients) => {
+  Client.find().populate('providers').exec((err, clients) => {
     err ? res.status(500).json(err) : res.status(200).json(clients);
   })
 }
