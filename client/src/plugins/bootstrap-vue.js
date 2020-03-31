@@ -11,7 +11,9 @@ import {
   FormGroupPlugin,
   FormCheckboxPlugin,
   VBHoverPlugin,
-  ButtonGroupPlugin
+  ButtonGroupPlugin,
+  NavbarPlugin,
+  FormSelectPlugin
 } from 'bootstrap-vue';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -32,3 +34,5 @@ Vue.use(FormGroupPlugin);
 Vue.use(FormCheckboxPlugin);
 Vue.use(VBHoverPlugin);
 Vue.use(ButtonGroupPlugin);
+Vue.use(NavbarPlugin);
+Vue.use(FormSelectPlugin);
