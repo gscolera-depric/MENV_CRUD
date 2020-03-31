@@ -204,6 +204,37 @@ paths:
           schema:
             type: string
           description: Id of the client to delete
+  /client/filter:
+    get:
+      summary: Returns clients with filters
+      tags:
+        - Client
+      responses:
+        200:
+          description: Ok
+          schema:
+            $ref: '#/components/schemas/Client'
+        500:
+          description: Database error
+      parameters:
+        - in: query
+          name: name
+          required: false
+          schema:
+            type: string
+          description: Filter client by name
+        - in: query
+          email: email
+          required: false
+          schema:
+            type: string
+          description: Filter client by email
+        - in: query
+          phone: phone
+          required: false
+          schema:
+            type: string
+          description: Filter client by phone
 
     
 
